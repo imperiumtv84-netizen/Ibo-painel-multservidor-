@@ -24,14 +24,23 @@ with st.form("form_ativacao"):
 
     # --- Captcha ---
     st.write("---")
-    if st.form_submit_button("Atualizar Captcha"):
-        st.rerun()
-
+    
     # Busca e exibe o captcha
     captcha_bytes = st.session_state.manager.obter_captcha()
+    
     if captcha_bytes:
-        image = Image.open(io.BytesIO(captcha_bytes))
-        st.image(image, caption="Digite o código acima")
+        try:
+            image = Image.open(io.BytesIO(captcha_bytes))
+            st.image(image, caption="Digite o código acima")
+        except Exception as e:
+            st.error(f"Erro ao processar imagem: {e}")
+            # Mostra o conteúdo recebido para debug
+            st.code(captcha_bytes[:100])
+    else:
+        st.warning("Não foi possível carregar a imagem do captcha.")
+
+    if st.form_submit_button("Atualizar Captcha"):
+        st.rerun()
     
     captcha_code = st.text_input("Código do Captcha")
     
