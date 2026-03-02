@@ -14,26 +14,23 @@ class IboManager:
     def iniciar_sessao(self):
         """Acessa a página de login para gerar o cookie e aceitar termos."""
         url = f"{self.base_url}/device/login"
-        response = self.session.get(url)
-        
-        # Simula aceitação dos termos (Legal Terms)
-        # É crucial enviar 'agree=1' para o IBO validar a sessão
+        self.session.get(url)
+        # Simula aceitação dos termos
         payload = {'agree': '1'}
         self.session.post(url, data=payload)
-        
-        return response.text
 
     def obter_captcha(self):
         """Captura a imagem do captcha atual."""
         self.iniciar_sessao()
         
-        # Busca a URL do captcha no HTML
+        # Busca a URL do captcha
         url_captcha = f"{self.base_url}/captcha/image"
         response = self.session.get(url_captcha)
         
-        if response.status_code == 200:
-            return response.content # Retorna a imagem em bytes
-        return None
+        # VERIFICAÇÃO IMPORTANTE: Checa se é realmente uma imagem
+        if response.status_code == 200 and 'image' in response.headers.get('Content-Type', ''):
+            return response.content
+        return None # Retorna None se não for imagem
 
     def ativar_dispositivo(self, mac, key, user, password, captcha_code, server_url):
         """Envia os dados de ativação."""
@@ -46,7 +43,7 @@ class IboManager:
             'username': user,
             'password': password,
             'captcha': captcha_code,
-            'agree': '1' # Reafirma a aceitação dos termos
+            'agree': '1'
         }
         
         response = self.session.post(url_post, data=payload)
