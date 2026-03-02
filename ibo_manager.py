@@ -1,5 +1,5 @@
 import streamlit as st
-from ibo_manager import IboManager
+from ibo_manager 
 from PIL import Image
 import io
 
