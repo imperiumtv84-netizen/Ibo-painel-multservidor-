@@ -8,36 +8,37 @@ class IboManager:
             "Referer": "https://iboproapp.com/manage-playlists/login/"
         })
         self.base_url = "https://iboproapp.com"
-        # Substitua SEU_DNS_AQUI pelo DNS real que você quer esconder
-        self.dns_fixo = "http://SEU_DNS_AQUI:8080" 
+        # Seu DNS fixo
+        self.dns_base = "http://galaxy.blcplay1.com" 
 
     def ativar_dispositivo(self, mac, key, user, password):
         url_post = f"{self.base_url}/manage-playlists/login/"
         
-        # PIN Fixo solicitado: 1122334455
-        pin_fixo = "1122334455"
+        # PIN de 5 dígitos solicitado
+        pin_5_digitos = "12345"
+        
+        # MONTAGEM DA URL DINÂMICA (Padrão solicitado)
+        # Ex: http://galaxy.blcplay1.com/get.php?username=USER&password=PASS&type=m3u_plus&output=mpegts
+        playlist_url = f"{self.dns_base}/get.php?username={user}&password={password}&type=m3u_plus&output=mpegts"
         
         payload = {
             'mac_address': mac,
             'device_key': key,
-            'username': user,
-            'password': password,
-            'xc_url': self.dns_fixo,
-            'protect_pin': '1',        # Marca a caixa "Protect this playlist"
-            'pin': pin_fixo,           # Campo PIN
-            'confirm_pin': pin_fixo,   # Campo Confirm PIN
+            'playlist_name': 'ImperiumTV', # Nome que aparecerá no IBO
+            'playlist_url': playlist_url,  # URL montada automaticamente
+            'protect_pin': '1',
+            'pin': pin_5_digitos,
+            'confirm_pin': pin_5_digitos,
             'login_button': 'Login'
         }
         
         try:
-            # Envia a requisição para o servidor
             r = self.session.post(url_post, data=payload, timeout=15)
             return r.text
         except Exception as e:
             return f"Erro: {str(e)}"
 
     def excluir_playlist(self, mac, key):
-        """ Função para deletar playlist em massa """
         url_delete = f"{self.base_url}/manage-playlists/delete-playlist/"
         payload = {'mac_address': mac, 'device_key': key}
         try:
