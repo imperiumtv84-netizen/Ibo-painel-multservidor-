@@ -1,32 +1,41 @@
 import streamlit as st
-from ibo_manager import IboManager
 
-st.set_page_config(page_title="Painel ImperiumTV", page_icon="📺")
-st.title("📺 Painel ImperiumTV - IBO Pro")
+st.set_page_config(page_title="ImperiumTV - Massa", page_icon="📺")
+st.title("📺 Adição em Massa ImperiumTV")
 
-if 'manager' not in st.session_state:
-    st.session_state.manager = IboManager()
+# Configurações Fixas
+DNS_BASE = "http://galaxy.blcplay1.com"
+PIN_5 = "12345"
 
-aba1, aba2 = st.tabs(["🚀 Ativação", "🗑️ Exclusão"])
+st.info("💡 Como o IBO bloqueia robôs, use esta ferramenta para gerar a lista de URLs prontas.")
 
-with aba1:
-    with st.form("form_ativacao"):
-        col1, col2 = st.columns(2)
-        with col1:
-            mac = st.text_input("MAC Address")
-            key = st.text_input("Device Key", type="password")
-            server_num = st.selectbox("Selecione o Servidor", ["Server 1", "Server 2", "Server 3"])
-        with col2:
-            user = st.text_input("Usuário IPTV")
-            password = st.text_input("Senha IPTV", type="password")
+# --- ABA DE ADIÇÃO EM MASSA ---
+st.subheader("🚀 Gerador de Links em Lote")
+st.write("Insira os dados no formato: `MAC|KEY|USER|PASS` (um por linha)")
+lista_massa = st.text_area("Lista de Clientes", height=200, placeholder="00:11:22:33:44:55|654321|usuario123|senha123")
+
+if st.button("🔗 Gerar Tudo"):
+    if not lista_massa:
+        st.error("Insira ao menos uma linha!")
+    else:
+        linhas = [l.strip() for l in lista_massa.split('\n') if '|' in l]
         
-        submit = st.form_submit_button("🚀 Enviar para o IBO")
+        st.write(f"### ✅ {len(linhas)} Links Gerados")
+        
+        # Criamos uma tabela para facilitar a cópia individual se necessário
+        for linha in linhas:
+            try:
+                m, k, u, p = linha.split('|')
+                link_final = f"{DNS_BASE}/get.php?username={u}&password={p}&type=m3u_plus&output=mpegts"
+                
+                with st.expander(f"MAC: {m}"):
+                    st.code(f"URL: {link_final}\nPIN: {PIN_5}")
+                    st.button(f"Copiar link de {m}", on_click=lambda l=link_final: st.write(f"Copiado: {l}"), key=m)
+            except:
+                st.warning(f"Linha inválida: {linha}")
 
-    if submit:
-        with st.spinner("Conectando ao IBO Pro..."):
-            # Passamos o número do servidor para o manager se desejar customizar
-            res = st.session_state.manager.ativar_dispositivo(mac, key, user, password)
-            if res == "Sucesso":
-                st.success(f"✅ Enviado! Verifique a lista no site.")
-            else:
-                st.error(f"❌ Falha: {res}")
+# --- ABA DE EXCLUSÃO (TEXTO PURO) ---
+st.divider()
+st.subheader("🗑️ Formatação para Exclusão")
+st.write("Use esta área para organizar seus MACs de limpeza.")
+# Aqui mantemos apenas um bloco de notas para organização do usuário
